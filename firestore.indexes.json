@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "bottles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isCaught",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "thrownAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

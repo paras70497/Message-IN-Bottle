@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bottles collection rules
+    match /bottles/{bottle} {
+      // Anyone can read all bottles
+      allow read: if true;
+      
+      // Anyone can create a bottle with valid data
+      allow create: if request.resource.data.keys().hasAll(['message', 'author', 'thrownAt', 'isCaught'])
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() >= 10
+                    && request.resource.data.message.size() <= 500
+                    && request.resource.data.author is string
+                    && request.resource.data.author.size() <= 50
+                    && request.resource.data.isCaught == false
+                    && request.resource.data.caughtBy == null
+                    && request.resource.data.caughtAt == null;
+      
+      // Only allow updating to mark a bottle as caught
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['isCaught', 'caughtBy', 'caughtAt'])
+                    && request.resource.data.isCaught == true
+                    && resource.data.isCaught == false
+                    && request.resource.data.caughtBy is string
+                    && request.resource.data.caughtBy.size() > 0;
+      
+      // No one can delete bottles
+      allow delete: if false;
+    }
+  }
+}

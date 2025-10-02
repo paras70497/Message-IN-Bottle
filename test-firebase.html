@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+        }
+        h1 { margin-top: 0; }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); border: 2px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.3); border: 2px solid #f44336; }
+        .loading { background: rgba(255, 152, 0, 0.3); border: 2px solid #FF9800; }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Connection Test</h1>
+        
+        <div id="status" class="status loading">
+            ⏳ Testing Firebase connection...
+        </div>
+
+        <div id="details" class="info" style="display:none;">
+            <h3>Connection Details:</h3>
+            <pre id="info-text"></pre>
+        </div>
+
+        <div id="actions" style="display:none;">
+            <h3>Quick Tests:</h3>
+            <button id="test-write">Test Write (Throw Bottle)</button>
+            <button id="test-read">Test Read (Get Bottles)</button>
+            <button id="debug-bottles">🐛 Debug Bottles</button>
+            <button id="open-app">Open Main App</button>
+        </div>
+
+        <div id="test-results" style="margin-top: 20px;"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs,
+            serverTimestamp
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGo6zskKev9-RwsIQ_svvRjtG96J_6ruc",
+            authDomain: "messageinabottle-f243a.firebaseapp.com",
+            projectId: "messageinabottle-f243a",
+            storageBucket: "messageinabottle-f243a.firebasestorage.app",
+            messagingSenderId: "304108095041",
+            appId: "1:304108095041:web:e36541c0cbc38e51b628c0",
+            measurementId: "G-0CSDVQM1SD"
+        };
+
+        const statusDiv = document.getElementById('status');
+        const detailsDiv = document.getElementById('details');
+        const actionsDiv = document.getElementById('actions');
+        const infoText = document.getElementById('info-text');
+        const testResults = document.getElementById('test-results');
+
+        let app, db;
+
+        // Test Firebase initialization
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            
+            statusDiv.className = 'status success';
+            statusDiv.innerHTML = '✅ Firebase connected successfully!';
+            
+            detailsDiv.style.display = 'block';
+            actionsDiv.style.display = 'block';
+            
+            infoText.textContent = `Project ID: ${firebaseConfig.projectId}
+Auth Domain: ${firebaseConfig.authDomain}
+Firebase App: Initialized ✓
+Firestore: Ready ✓`;
+
+            console.log('✅ Firebase initialized successfully!');
+        } catch (error) {
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = '❌ Firebase connection failed!';
+            detailsDiv.style.display = 'block';
+            infoText.textContent = `Error: ${error.message}`;
+            console.error('Firebase initialization error:', error);
+        }
+
+        // Test write
+        document.getElementById('test-write').addEventListener('click', async () => {
+            testResults.innerHTML = '<div class="status loading">🍾 Throwing test bottle...</div>';
+            
+            try {
+                const testBottle = {
+                    message: "This is a test bottle from the Firebase connection test!",
+                    author: "Test User",
+                    thrownAt: serverTimestamp(),
+                    isCaught: false,
+                    caughtBy: null,
+                    caughtAt: null
+                };
+
+                const docRef = await addDoc(collection(db, 'bottles'), testBottle);
+                
+                testResults.innerHTML = `<div class="status success">
+                    ✅ Test bottle thrown successfully!<br>
+                    Bottle ID: ${docRef.id}<br>
+                    Check your Firebase Console > Firestore Database to see it!
+                </div>`;
+                
+                console.log('Test bottle created:', docRef.id);
+            } catch (error) {
+                testResults.innerHTML = `<div class="status error">
+                    ❌ Failed to throw bottle: ${error.message}<br><br>
+                    <strong>Common fixes:</strong><br>
+                    1. Make sure Firestore Database is enabled in Firebase Console<br>
+                    2. Check that you're in "test mode" or rules allow writes<br>
+                    3. Wait a few minutes if you just created the database
+                </div>`;
+                console.error('Write test error:', error);
+            }
+        });
+
+        // Test read
+        document.getElementById('test-read').addEventListener('click', async () => {
+            testResults.innerHTML = '<div class="status loading">🎣 Fishing for bottles...</div>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'bottles'));
+                const count = querySnapshot.size;
+                
+                let bottlesList = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    bottlesList += `<li>From: ${data.author} - "${data.message.substring(0, 50)}..."</li>`;
+                });
+
+                testResults.innerHTML = `<div class="status success">
+                    ✅ Found ${count} bottle${count !== 1 ? 's' : ''} in the ocean!
+                    ${count > 0 ? `<ul>${bottlesList}</ul>` : '<p>The ocean is empty. Try throwing a bottle first!</p>'}
+                </div>`;
+                
+                console.log(`Found ${count} bottles`);
+            } catch (error) {
+                testResults.innerHTML = `<div class="status error">
+                    ❌ Failed to read bottles: ${error.message}<br><br>
+                    <strong>Common fixes:</strong><br>
+                    1. Make sure Firestore Database is enabled in Firebase Console<br>
+                    2. Check that you're in "test mode" or rules allow reads
+                </div>`;
+                console.error('Read test error:', error);
+            }
+        });
+
+        // Debug bottles
+        document.getElementById('debug-bottles').addEventListener('click', async () => {
+            testResults.innerHTML = '<div class="status loading">🐛 Debugging bottles...</div>';
+            
+            try {
+                // Get ALL bottles (no filter)
+                const allBottlesSnapshot = await getDocs(collection(db, 'bottles'));
+                console.log('=== DEBUG START ===');
+                console.log('Total bottles in database:', allBottlesSnapshot.size);
+                
+                let debugInfo = `<div class="status success">
+                    <strong>Debug Results:</strong><br>
+                    Total bottles in database: ${allBottlesSnapshot.size}<br><br>`;
+                
+                allBottlesSnapshot.docs.forEach((doc, index) => {
+                    const data = doc.data();
+                    console.log(`Bottle ${index + 1}:`, {
+                        id: doc.id,
+                        message: data.message,
+                        isCaught: data.isCaught,
+                        isCaughtType: typeof data.isCaught,
+                        thrownAt: data.thrownAt
+                    });
+                    
+                    debugInfo += `
+                        <strong>Bottle ${index + 1}:</strong><br>
+                        - ID: ${doc.id}<br>
+                        - Message: "${data.message.substring(0, 30)}..."<br>
+                        - isCaught: ${data.isCaught} (type: ${typeof data.isCaught})<br>
+                        - Author: ${data.author}<br><br>
+                    `;
+                });
+                
+                // Now get only uncaught bottles
+                const uncaughtQuery = query(
+                    collection(db, 'bottles'),
+                    where('isCaught', '==', false)
+                );
+                const uncaughtSnapshot = await getDocs(uncaughtQuery);
+                console.log('Uncaught bottles:', uncaughtSnapshot.size);
+                console.log('=== DEBUG END ===');
+                
+                debugInfo += `<br><strong>Uncaught bottles: ${uncaughtSnapshot.size}</strong><br>
+                    Check browser console (F12) for detailed logs!
+                </div>`;
+                
+                testResults.innerHTML = debugInfo;
+            } catch (error) {
+                console.error('Debug error:', error);
+                testResults.innerHTML = `<div class="status error">❌ Debug error: ${error.message}</div>`;
+            }
+        });
+
+        // Open main app
+        document.getElementById('open-app').addEventListener('click', () => {
+            window.location.href = 'public/index.html';
+        });
+    </script>
+</body>
+</html>
