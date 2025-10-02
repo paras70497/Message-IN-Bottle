@@ -5,25 +5,20 @@
     {
       "source": "/",
       "destination": "/public/index.html"
-    },
-    {
-      "source": "/src/:path*",
-      "destination": "/src/:path*"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/public/:path*"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/src/(.*)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        }
-      ]
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/src/(.*)",
+      "dest": "/src/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "main": "public/index.html",
   "type": "module",
   "scripts": {
-    "start": "npx live-server public",
-    "dev": "npx live-server public --port=8080",
+    "start": "npx live-server .",
+    "dev": "npx live-server . --port=8080",
     "build": "echo 'No build step required - vanilla JavaScript app'",
     "deploy": "firebase deploy"
   },
