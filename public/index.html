@@ -105,7 +105,23 @@
         <p class="footer-note">Messages are anonymous and public. Be kind! ❤️</p>
     </footer>
 
-    <!-- Scripts - Load Firebase and App -->
-    <script type="module" src="../src/app.js"></script>
+    <!-- Scripts - Load Firebase and App with correct path -->
+    <script type="module">
+        // Dynamically load the correct path based on environment
+        const scriptPath = window.location.hostname.includes('localhost') || window.location.protocol === 'file:' 
+            ? '../src/app.js' 
+            : '/src/app.js';
+        
+        import(scriptPath)
+            .catch(err => {
+                console.error('Failed to load app.js, trying alternate path...', err);
+                // Try alternate path
+                return import('../src/app.js');
+            })
+            .catch(err => {
+                console.error('Failed to load app:', err);
+                alert('Failed to load application. Please check console.');
+            });
+    </script>
 </body>
 </html>
